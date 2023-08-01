@@ -1,0 +1,160 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  /*background-image: url("background-image.jpg");*/
+  background-size: cover;
+}
+
+.claim {font-size: 22px;
+color: #ff7300;}
+
+.container {
+  width: 95%;
+  height: 95%;
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 36px;
+  color: #333333;
+  margin-bottom: 30px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: bold;
+  color: #777777;
+  text-align: left;
+}
+.input-container {
+  width: 100%;
+}
+.input-group input {
+  width: 100%;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  color: #ffffff;
+  border-radius: 5px;
+  border: none;
+  background-color: #4CAF50;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  background-color: #45a049;
+}
+
+
+
+
+
+.input-container {
+position: relative;
+display: inline-block;
+height: 100px;
+}
+
+#url-input {
+  font-family: Arial;
+  width: 100%;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  font-size: 16px;
+  resize: none;
+  border-radius: 5px;
+  border: none;
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+padding-right: 32; /* 给输入框右边留出空间 */
+height: 100%;
+}
+
+#video {
+  width: 100%;
+  height: auto;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+/*
+.hidden-button {
+position: absolute;
+top: 0;
+right: 0;
+width: 32px;
+height: 100%;
+opacity: 0;
+cursor: pointer;
+}*/
+
+.visible-span.scanQrcode{
+  border: 2px solid rgb(0, 0, 0); 
+  display: flex;
+  justify-content: center; /* 水平方向居中对齐 */
+  align-items: center; /* 垂直方向居中对齐 */
+position: absolute;
+top: 0;
+right: 0;
+height: 100%;
+padding: 9px;
+background-color: #f2f2f2;
+cursor: pointer;
+}
+
+.visible-span.uploadImg{
+  border: 2px solid rgb(0, 0, 0); 
+  display: flex;
+  justify-content: center; /* 水平方向居中对齐 */
+  align-items: center; /* 垂直方向居中对齐 */
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translateX(-82px);
+  height: 100%;
+  padding: 9px;
+  background-color: #f2f2f2;
+  cursor: pointer;
+  }
+
+/* 鼠标悬停时可视元素的样式 */
+.visible-span:hover {
+background-color: #e0e0e0;
+}

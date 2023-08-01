@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>调用摄像头实时显示和抓拍示例并且识别二维码</title>
+    <style>
+        #video {
+            width: 50%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay></video>
+    <button id="open-button">打开摄像头</button>
+    <button id="close-button">关闭摄像头</button>
+    <button id="capture-button">拍照</button>
+    <img id="photo" src="" alt="Captured Photo">
+    <button id="detect-button">识别二维码</button>
+    <input id="result-input" type="text" placeholder="识别结果" readonly>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <script>
+        // 获取元素
+        const video = document.getElementById('video');
+        const openButton = document.getElementById('open-button');
+        const closeButton = document.getElementById('close-button');
+        const captureButton = document.getElementById('capture-button');
+        const photoElement = document.getElementById('photo');
+        const canvas = document.getElementById('canvas');
+        let stream;
+
+// 打开摄像头 user 前置 environment 后置
+function openCamera() {
+    const constraints = {
+        video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (mediaStream) {
+            stream = mediaStream;
+            video.srcObject = stream;
+        })
+        .catch(function (error) {
+            console.error('摄像头打开失败：', error);
+        });
+}
+
+
+
+        // 关闭摄像头
+        function closeCamera() {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(function (track) {
+                    track.stop();
+                });
+                video.srcObject = null;
+            }
+        }
+
+// 拍照按钮点击事件
+captureButton.addEventListener('click', function() {
+    // 设置画布尺寸与视频分辨率一致
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // 将视频帧绘制到画布上
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 将画布内容转为图像数据 URL
+    const imageUrl = canvas.toDataURL('image/png');
+    
+    // 更新img元素的src属性
+    const photoElement = document.getElementById('photo');
+    photoElement.src = imageUrl;
+    
+    // 创建一个链接并设置图像数据 URL 为链接地址
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'photo.png';  // 下载图片的文件名
+
+    // 模拟点击链接，触发下载
+    link.click();
+});
+
+        // 打开摄像头按钮点击事件
+        openButton.addEventListener('click', function() {
+            openCamera();
+        });
+
+        // 关闭摄像头按钮点击事件
+        closeButton.addEventListener('click', function() {
+            closeCamera();
+        });
+
+// 引入二维码识别库
+// 请确保在使用之前已经在项目中引入该库
+// 获取识别二维码按钮和input元素
+const detectButton = document.getElementById('detect-button');
+const resultInput = document.getElementById('result-input');
+
+
+// 识别二维码按钮点击事件的回调函数
+detectButton.addEventListener('click', function() {
+  // 创建一个Image对象用于读取img元素中的图片
+  const img = new Image();
+  img.src = photoElement.src;
+
+  // 等待图片加载完成后进行二维码识别
+  img.onload = function() {
+    // 创建一个canvas元素用于绘制图像
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    ctx.drawImage(img, 0, 0);
+
+    // 从canvas中读取图像数据
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+    // 如果成功识别二维码，将结果输出到input元素
+    if (code) {
+      resultInput.value = code.data;
+    } else {
+      resultInput.value = '未能识别二维码';
+    }
+  };
+});
+
+    </script>
+
+<script src="jsQR.js"></script>
+
+</body>
+</html>

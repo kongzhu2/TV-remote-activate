@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR码识别</title>
+  <style>
+    #video {
+      width: 100%;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR码识别</h1>
+  <video id="video" playsinline></video>
+  <button onclick="startQRCodeDetection()">点击扫码</button>
+
+  <script src="jsQR.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const resultInput = document.createElement('input');
+    document.body.appendChild(resultInput);
+
+    let timer;
+
+    function startQRCodeDetection() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+            timer = setInterval(function () {
+              captureFrame();
+            }, 1000);
+          })
+          .catch(function (error) {
+            console.error('操作用户媒体设备时出错：', error);
+          });
+      } else {
+        console.error('不支持访问用户媒体设备');
+      }
+    }
+
+    function captureFrame() {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      detectQRCode(imageData);
+    }
+
+    function detectQRCode(imageData) {
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        resultInput.value = code.data;
+        // 在这里执行二维码识别成功后的操作
+        clearInterval(timer); // 停止定时器
+        showSuccessMessage();
+        video.srcObject.getTracks()[0].stop(); // 关闭摄像头
+      }
+      // else {
+      //   resultInput.value = '未能识别二维码';
+      // }
+    }
+
+    function showSuccessMessage() {
+      // 在这里显示识别成功的提示消息
+      alert('成功识别二维码！');
+    }
+  </script>
+</body>
+</html>

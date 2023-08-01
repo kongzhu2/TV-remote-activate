@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR码识别</title>
+  <style>
+    #video {
+      width: 100%;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR码识别</h1>
+  <video id="video" playsinline></video>
+  <button onclick="startQRCodeDetection()">点击扫码</button>
+
+  <script src="jsQR.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const resultInput = document.createElement('input');
+    document.body.appendChild(resultInput);
+
+    let frameCount = 0;
+    let timer;
+
+    // 检查浏览器是否支持
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(function(error) {
+          console.error('操作用户媒体设备时出错：', error);
+        });
+    } else {
+      console.error('不支持访问用户媒体设备');
+    }
+
+    function startQRCodeDetection() {
+      timer = setInterval(function() {
+        captureFrame();
+        frameCount++;
+        if (frameCount >= 10) { // 捕获了指定数量的帧后进行二维码识别
+          clearInterval(timer);
+          detectQRCode();
+          frameCount = 0;
+        }
+      }, 100);
+    }
+
+    function captureFrame() {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      detectQRCode(imageData);
+    }
+
+    function detectQRCode(imageData) {
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        clearInterval(timer);
+        resultInput.value = code.data;
+        // 在这里执行二维码识别成功后的操作
+        resetTimer();
+        showSuccessMessage();
+        video.srcObject.getTracks()[0].stop(); // 关闭摄像头
+        clearInterval(timer); // 停止计时器
+      }
+      // else {
+      //   resultInput.value = '未能识别二维码';
+      // }
+    }
+
+    function resetTimer() {
+      frameCount = 0;
+      timer = setInterval(function() {
+        captureFrame();
+        frameCount++;
+        if (frameCount >= 10) { // 捕获了指定数量的帧后重新开始识别
+          clearInterval(timer);
+          detectQRCode();
+          frameCount = 0;
+        }
+      }, 100);
+    }
+
+    function showSuccessMessage() {
+      // 在这里显示识别成功的提示消息
+      alert('成功识别二维码！');
+    }
+  </script>
+</body>
+</html>

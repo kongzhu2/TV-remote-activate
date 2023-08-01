@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TV激活页面</title>
+  <link rel="stylesheet" type="text/css" href="sweetalert2.min.css">
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h3 class="title">TV激活页面
+      <h2 class="claim">[免责声明]我们是第三方代激活平台 切勿利用本网站从事违反法律行为《如：诈骗,欺骗,行为不实 》 一切产生后果自负，我们只是第三方激活平台；如有问题请联系商家售后处理！</h2>
+      <h2 class="claim">[使用说明]点击提交后请耐心等待！整个过程需要一分钟左右，切勿关闭网页！</h2>
+    </h3>
+    <div class="input-group">
+      <label for="card-input">卡密：</label>
+      <input type="text" id="card-input" placeholder="请输入卡密">
+    </div>
+    <div class="input-group">
+      <label for="url-input">登录网址：</label>
+      <div class="input-container">
+        <textarea rows="4" type="text" id="url-input" placeholder="请输入网址"></textarea>
+        <span id="scanQrCode-button" class="visible-span scanQrcode">点击扫码</span>
+        <div id="button-container">
+          <input type="file" id="upload-button" accept="image/*" style="display: none;">
+          <span class="visible-span uploadImg" id="uploadImg-button">上传图片</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn" id="submit" onclick="submit()">提交</button>
+    <video id="video" playsinline style="display: none;"></video>
+    <div style="display: none;">
+      <button id="open-button">打开摄像头</button>
+      <button id="close-button">关闭摄像头</button>
+      <button id="capture-button">拍照</button>
+      <img id="photo" src="" alt="Captured Photo">
+      <button id="detect-button">识别二维码</button>
+      <input id="result-input" type="text" placeholder="识别结果" readonly>
+      <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+  </div>
+  <script src="sweetalert2.min.js"></script>
+  <script src="jsQR.js"></script>
+  <script>
+    // 获取元素
+    const uploadImgButton = document.getElementById('uploadImg-button');
+    const fileInput = document.createElement('input');
+    const scanButton = document.getElementById('scanQrCode-button');
+    const video = document.getElementById('video');
+    const openButton = document.getElementById('open-button');
+    const closeButton = document.getElementById('close-button');
+    const captureButton = document.getElementById('capture-button');
+    const photoElement = document.getElementById('photo');
+    const canvas = document.getElementById('canvas');
+    const cardinput = document.getElementById('card-input');
+    const urlinput = document.getElementById('url-input');
+    let stream;
+        // 在页面加载时获取并显示请求参数
+        window.onload = function() {
+      // 获取 URL 查询参数
+      var params = new URLSearchParams(window.location.search);
+
+      // 通过参数名获取参数值
+
+      // 显示参数值
+      cardinput.value = params.get('card');
+    };
+    function submit() {
+  const cardInput = document.getElementById('card-input');
+  const urlInput = document.getElementById('url-input');
+
+  // 检测卡密长度是否为32位
+  if(cardinput.value=='测试卡密'){}else{
+    if (cardInput.value.length !== 32) {
+    Swal.fire('错误', '卡密长度必须为32位', 'error');
+    return;
+  }
+  }
+
+
+  // 检测网址是否包含https://
+  if (!urlInput.value.includes('https://')) {
+    Swal.fire('错误', '网址格式不正确，必须包含 https://', 'error');
+    return;
+  }
+
+  Swal.fire({
+    icon: 'info',
+    title: '工作中',
+    text: '请耐心等待，不要关闭网页',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    onBeforeOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  fetch('/api?card=' + cardInput.value + '&loginUrl=' + urlInput.value, {
+    timeout: 300000
+  })
+    .then(function(response) {
+      return response.text();
+    })
+    .then(function(data) {
+      Swal.close();
+      Swal.fire({
+        title: '提示信息',
+        text: data
+      });
+    })
+    .catch(function(error) {
+      Swal.close();
+      Swal.fire('请求错误', error.message, 'error');
+    });
+}
+  uploadImgButton.addEventListener('click', function() {
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+
+  fileInput.addEventListener('change', function(event) {
+    const selectedFile = event.target.files[0];
+
+    // 在这里执行上传操作，可以使用选中的文件进行后续处理
+
+    // 例如，你可以创建一个 FileReader 对象来读取文件内容
+    const fileReader = new FileReader();
+    fileReader.onload = function(event) {
+      const uploadedDataUrl = event.target.result;
+      // 在这里可以使用 uploadedDataUrl 来处理或展示上传的图片
+      //console.log(uploadedDataUrl);
+  // 创建一个 Image 对象
+  const img = new Image();
+  img.onload = function() {
+    // 创建一个 canvas 元素，并获取 2D 上下文
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    // 将图片绘制到 canvas 上
+    canvas.width = img.width;
+    canvas.height = img.height;
+    context.drawImage(img, 0, 0);
+
+    // 获取绘制后的图片的 ImageData 对象
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+    // 使用 jsQR 解析二维码
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+    if (code) {
+      // 解析成功，输出二维码内容
+      urlinput.value = code.data;
+      //alert('二维码解析成功!')
+      Swal.fire({
+  icon: 'success',
+  title: '二维码解析成功!',
+  showConfirmButton: false,
+  timer: 2000  // 弹窗自动关闭的时间（以毫秒为单位）
+}).then(() => {
+  // 在弹窗关闭后执行的操作
+
+  // 例如，可以在这里写下你想执行的代码
+  console.log('弹窗已关闭');
+  // 或者调用某个函数
+  submit();
+});
+      console.log('二维码内容:', code.data);
+    } else {
+      // 解析失败
+      //alert('二维码解析失败!')
+      Swal.fire({
+  icon: 'error',
+  title: '二维码解析失败!',
+  showConfirmButton: false,
+  timer: 2000  // 弹窗自动关闭的时间（以毫秒为单位）
+});
+      console.log('未能解析二维码');
+    }
+  };
+
+  // 将上传的图片数据赋值给 Image 对象
+  img.src = uploadedDataUrl;};
+
+    // 读取选中文件的内容
+    fileReader.readAsDataURL(selectedFile);
+  });
+
+  // 触发文件选择对话框
+  fileInput.click();
+});
+//点击扫码按钮点击事件
+scanButton.addEventListener('click', function() {
+        openButton.click();//打开摄像头
+        video.style.display = '';
+        video.play();
+        startQRCodeDetection();
+    });
+
+    let timer;
+
+function startQRCodeDetection() {
+
+        timer = setInterval(function () {
+          captureFrame();
+          console.log('定时器运行中');
+        }, 1000);
+  
+}
+
+function captureFrame() {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  detectQRCode(imageData);
+}
+
+function detectQRCode(imageData) {
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) {
+    // 在这里执行二维码识别成功后的操作
+    clearInterval(timer); // 停止定时器
+
+    urlinput.value = code.data;
+    video.pause();//防止黑屏
+    video.srcObject.getTracks()[0].stop(); // 关闭摄像头
+    
+    Swal.fire({
+  icon: 'success',
+  title: '二维码解析成功!',
+  showConfirmButton: false,
+  timer: 2000  // 弹窗自动关闭的时间（以毫秒为单位）
+}).then(() => {
+  // 在弹窗关闭后执行的操作
+
+  // 例如，可以在这里写下你想执行的代码
+  console.log('弹窗已关闭');
+  // 或者调用某个函数
+  submit();
+});
+    
+  }
+  // else {
+  //   resultInput.value = '未能识别二维码';
+  // }
+}
+
+
+
+
+
+// 打开摄像头 user 前置 environment 后置
+function openCamera() {
+  if (stream && stream.active) {
+    console.log('摄像头已经打开');
+    return;
+  }
+
+    const constraints = {
+        video: { 
+            facingMode: 'environment',
+            width: { ideal: 720 },
+            height: { ideal: 1280 },
+            aspectRatio: 9 / 16
+        }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (mediaStream) {
+            stream = mediaStream;
+            video.srcObject = stream;
+            console.log('已打开摄像头');
+        })
+        .catch(function (error) {
+            console.error('摄像头打开失败：', error);
+        });
+}
+
+
+
+    // 关闭摄像头
+    function closeCamera() {
+        if (stream) {
+            const tracks = stream.getTracks();
+            tracks.forEach(function (track) {
+                track.stop();
+            });
+            video.srcObject = null;
+        }
+    }
+
+// 拍照按钮点击事件
+captureButton.addEventListener('click', function() {
+// 设置画布尺寸与视频分辨率一致
+canvas.width = video.videoWidth;
+canvas.height = video.videoHeight;
+
+// 将视频帧绘制到画布上
+canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+// 将画布内容转为图像数据 URL
+const imageUrl = canvas.toDataURL('image/png');
+
+// 更新img元素的src属性
+const photoElement = document.getElementById('photo');
+photoElement.src = imageUrl;
+
+// 创建一个链接并设置图像数据 URL 为链接地址
+const link = document.createElement('a');
+link.href = imageUrl;
+link.download = 'photo.png';  // 下载图片的文件名
+
+// 模拟点击链接，触发下载
+link.click();
+});
+
+    // 打开摄像头按钮点击事件
+    openButton.addEventListener('click', function() {
+        openCamera();
+    });
+
+    // 关闭摄像头按钮点击事件
+    closeButton.addEventListener('click', function() {
+        closeCamera();
+    });
+
+// 引入二维码识别库
+// 请确保在使用之前已经在项目中引入该库
+// 获取识别二维码按钮和input元素
+const detectButton = document.getElementById('detect-button');
+const resultInput = document.getElementById('result-input');
+
+
+// 识别二维码按钮点击事件的回调函数
+detectButton.addEventListener('click', function() {
+// 创建一个Image对象用于读取img元素中的图片
+const img = new Image();
+img.src = photoElement.src;
+
+// 等待图片加载完成后进行二维码识别
+img.onload = function() {
+// 创建一个canvas元素用于绘制图像
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = img.naturalWidth;
+canvas.height = img.naturalHeight;
+ctx.drawImage(img, 0, 0);
+
+// 从canvas中读取图像数据
+const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+// 如果成功识别二维码，将结果输出到input元素
+if (code) {
+  resultInput.value = code.data;
+} else {
+  resultInput.value = '未能识别二维码';
+}
+};
+});
+
+</script>
+
+
+
+
+</body>
+</html>
