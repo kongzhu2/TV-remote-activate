@@ -72,7 +72,13 @@
   // 检测卡密长度是否为32位
   if(cardinput.value=='测试卡密'){}else{
     if (cardInput.value.length !== 32) {
-    Swal.fire('错误', '卡密长度必须为32位', 'error');
+      Swal.fire({
+  icon: 'error',
+  title: '错误',
+  text: '密长度必须为32位',
+  confirmButtonText: '确认'
+});
+
     return;
   }
   }
@@ -80,7 +86,12 @@
 
   // 检测网址是否包含https://
   if (!urlInput.value.includes('https://')) {
-    Swal.fire('错误', '网址格式不正确，必须包含 https://', 'error');
+    Swal.fire({
+  icon: 'error',
+  title: '错误',
+  text: '网址格式不正确，必须包含 https://',
+  confirmButtonText: '确认'
+});
     return;
   }
 
